@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <script>mermaid.initialize({startOnLoad:true});</script>
+</head>
+<body>
+    <div id="diagram" class="mermaid">
+graph TD
+    User["User (API)"] --> Controller["REST Controller"]
+    Scheduler["Spring Scheduler"] --> SyncService["InboxSyncService"]
+    Controller --> SyncService
+    SyncService --> GmailAPI["Google Gmail API (OAuth2)"]
+    SyncService --> EventBus["Transactional Event Bus"]
+    EventBus --> IntelService["IntelligenceService"]
+    IntelService --> AIProvider["LLM Provider (OpenAI/Anthropic)"]
+    IntelService --> DB[("Local DB (H2/Postgres)")]
+    DB --> |Summary Storage| IntelService
+    </div>
+</body>
+</html>

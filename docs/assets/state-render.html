@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <script>mermaid.initialize({startOnLoad:true});</script>
+</head>
+<body>
+    <div id="diagram" class="mermaid">
+stateDiagram-v2
+    [*] --> SYNC_PENDING: Scheduler Trigger
+    SYNC_PENDING --> EMAIL_FETCHED: Gmail API Call
+    EMAIL_FETCHED --> SYNC_EMITTED: EmailSyncedEvent
+    state SYNC_EMITTED {
+        [*] --> AI_PROCESSING: Summarize
+        AI_PROCESSING --> PERSISTING: Save Summary
+        PERSISTING --> ARCHIVING: Archive in Gmail
+    }
+    ARCHIVING --> SUCCESS: Finished
+    AI_PROCESSING --> FAILED: LLM Error
+    FAILED --> [*]: ProcessingFailedEvent
+    </div>
+</body>
+</html>

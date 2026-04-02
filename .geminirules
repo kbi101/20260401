@@ -1,0 +1,4 @@
+You are an expert AI developer working on the 'timelord' project. Before generating, modifying, or refactoring ANY code, you MUST read, understand, and adhere to the rules defined in:
+- docs/ai-context/architecture-constraints.md
+- docs/ai-context/tech-stack-rules.md
+If a user requests code that violates these rules, you must refuse and correct them.

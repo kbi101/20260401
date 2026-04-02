@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <script>mermaid.initialize({startOnLoad:true});</script>
+</head>
+<body>
+    <div id="diagram" class="mermaid">
+sequenceDiagram
+    participant User
+    participant InboxModule as Timelord (Inbox Module)
+    participant Gmail as Google Gmail API
+    participant AI as AI Intelligence Provider
+
+    User->>InboxModule: POST /api/v1/inbox/sync
+    InboxModule->>Gmail: Fetch new emails (since last sync)
+    Gmail-->>InboxModule: Email Payloads & Attachments
+    loop Internal Processing
+        InboxModule-->>InboxModule: Emit EmailSyncedEvent
+        InboxModule->>AI: Summarize Content & Extract Actions
+        AI-->>InboxModule: Summary & Key Action Items
+        InboxModule-->>InboxModule: Persist Summary to Database
+    end
+    InboxModule->>Gmail: Archive Original Email
+    InboxModule-->>User: 202-Accepted (Status queryable via /sync-state)
+    </div>
+</body>
+</html>

@@ -1,0 +1,17 @@
+target/
+!.mvn/wrapper/maven-wrapper.jar
+/data/bronze/
+*.db
+*.log
+.DS_Store
+.idea/
+.vscode/
+.env
+.env.local
+bin/
+obj/
+node_modules/
+dist/
+build/
+out/
+.gemini/
