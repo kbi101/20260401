@@ -9,6 +9,7 @@ import java.util.List;
 class SyncStateEntity {
 
     @Id
+    @Column(name = "user_id")
     private String emailAddress;
     private String accountName;
     private String appPassword;
@@ -48,7 +49,7 @@ class EmailSummaryEntity {
     private String originalGmailId;
     private String sourceEmail;
     
-    @Column(length = 4000)
+    @Column(columnDefinition = "TEXT")
     private String summaryText;
     
     @ElementCollection
@@ -87,7 +88,7 @@ class EmailPayloadEntity {
     private LocalDateTime receivedAt;
     private String subject;
     
-    @Column(length = 4000)
+    @Column(columnDefinition = "TEXT")
     private String bodyContent;
     
     private String localBodyPath;

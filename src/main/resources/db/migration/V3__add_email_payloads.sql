@@ -5,7 +5,7 @@ CREATE TABLE email_payloads (
     sender VARCHAR(255),
     received_at TIMESTAMP,
     subject TEXT,
-    body_content CLOB,
+    body_content TEXT,
     local_body_path VARCHAR(255),
     status VARCHAR(50) DEFAULT 'PENDING'
 );

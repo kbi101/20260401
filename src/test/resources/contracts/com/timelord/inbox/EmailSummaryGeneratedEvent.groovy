@@ -11,6 +11,7 @@ Contract.make {
         body([
             summaryId: anyUuid(),
             originalGmailId: anyNonEmptyString(),
+            sourceEmail: "user@example.com",
             summaryText: "The email discusses a deployment push to Monday for the project.",
             keyActionItems: ["Confirm configurations for Monday deployment"],
             sentiment: "NEUTRAL",

@@ -18,6 +18,12 @@ class InboxSyncService {
     private final SyncStateRepository syncStateRepository;
     private final EmailPayloadRepository emailPayloadRepository;
 
+    @org.springframework.beans.factory.annotation.Value("${GMAIL_PRIMARY_ACCOUNT:primary@timelord.com}")
+    private String primaryAccount;
+
+    @org.springframework.beans.factory.annotation.Value("${GMAIL_PRIMARY_PASSWORD:TODO-APP-PASS}")
+    private String primaryPassword;
+
     public InboxSyncService(GmailPort gmailPort, 
                             SyncStateRepository syncStateRepository, 
                             EmailPayloadRepository emailPayloadRepository) {
@@ -33,8 +39,8 @@ class InboxSyncService {
         List<SyncStateEntity> allStates = syncStateRepository.findAll();
         
         if (allStates.isEmpty()) {
-            log.warn("No accounts found in sync_state. Seeding a default placeholder.");
-            allStates.add(new SyncStateEntity("primary@timelord.com", "Primary", "TODO-APP-PASS", LocalDateTime.now().minusDays(1), 0));
+            log.warn("No accounts found in sync_state. Seeding from environment: {}", primaryAccount);
+            allStates.add(new SyncStateEntity(primaryAccount, "Primary", primaryPassword, LocalDateTime.now().minusDays(1), 0));
         }
 
         for (SyncStateEntity state : allStates) {

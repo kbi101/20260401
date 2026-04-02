@@ -8,6 +8,7 @@ target/
 .vscode/
 .env
 .env.local
+.env.dev
 bin/
 obj/
 node_modules/
