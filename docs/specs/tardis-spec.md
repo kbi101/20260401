@@ -3,11 +3,17 @@
 This specification defines the architectural requirements for the `tardis` module. The TARDIS service provides centralized time-related intelligence, scheduling, and temporal arithmetic to other modules and external agents within the Timelord ecosystem.
 
 ## 1. Feature Intent (Job-to-be-Done)
-- **Goal:** To provide a robust, high-precision temporal engine that abstracts complex time calculations (Timezones, Business Days, Relative offsets) and manages scheduled reminders/events for other system components.
+- **Goal:** To provide a robust, high-precision temporal engine that abstracts complex time calculations and manages the temporal self-awareness of entities (Living Things, Tasks, Email Chains) through context-aware aging, scheduling, and environmental cycles.
 - **Protocol:** REST API for synchronous arithmetic; Spring Application Events for asynchronous schedule triggers.
+- **Entity Intelligence:** 
+    - **Living Things (Person/Animal/Plant):** Real-time age and life-cycle relative time based on birth/origin.
+    - **Circadian Context:** Reporting Day/Night status based on timezone-aware environmental cycles for Earth-based entities.
+    - **Tasks:** One-time and periodic execution tracking and next-trigger forecasting.
+    - **Email Chains:** Deep temporal analysis of message chains (sent, received, reply, and nested reply-to-reply patterns).
+- **Inaccuracy Handling:** All temporal results MUST include or honor a **ConfidenceLevel** (e.g., HIGHEST, PROBABLE, ESTIMATED) when data is incomplete.
 - **Architecture:** 
-    - **Temporal Engine (Stateless):** Pure logic for conversions and arithmetic.
-    - **Persistence Layer (Stateful):** Storage for scheduled events and reminders in the `tardis_schedules` table.
+    - **Temporal Engine (Stateless):** Pure logic for conversions, arithmetic, and entity self-awareness logic.
+    - **Persistence Layer (Stateful):** Storage for scheduled events, entity origin timestamps, and reminders.
 - **Database Support:** 
     - **Production:** PostgreSQL 17+ (schema: `tardis_db`).
     - **Development:** H2 / SQLite.
@@ -31,23 +37,44 @@ This specification defines the architectural requirements for the `tardis` modul
 
 ### Input/Context Schemas
 ```java
-public record TimeConversionRequest(
-    String inputTimestamp, // ISO-8601
-    String sourceZone,     // e.g., "UTC"
-    String targetZone      // e.g., "America/New_York"
+public enum EntityType {
+    PERSON, ANIMAL, PLANT, TASK, EMAIL_CHAIN, SYSTEM
+}
+
+public enum ConfidenceLevel {
+    HIGHEST, PROBABLE, ESTIMATED, SPECULATIVE
+}
+
+public record EntityTemporalContext(
+    String entityId,
+    EntityType type,
+    String timezone,      // Source of truth for Circadian context
+    LocalDateTime birthTimestamp, // or task creation / email genesis
+    ConfidenceLevel sourceConfidence
 ) {}
 
-public record RelativeTimeRequest(
-    String anchorTimestamp,
-    String expression,     // e.g., "plus 3 business days"
-    boolean includeHolidays
+public record EntitySelfAwareness(
+    String entityId,
+    String relativeAge,   // e.g. "25 years", "2 days ago (received)"
+    boolean isDaylight,   // True if sun has risen in target timezone
+    LocalDateTime nextTransition, // next sunrise/sunset or next task run
+    ConfidenceLevel currentConfidence
+) {}
+
+public record EmailChainMetadata(
+    String chainId,
+    List<LocalDateTime> timelinePoints, // sent, received, reply, nested reply
+    Duration averageResponseTime,
+    ConfidenceLevel timelineConfidence
 ) {}
 
 public record FutureSchedule(
     String scheduleId,
-    String ownerModule,    // e.g., "inbox-intelligence"
+    String ownerModule,
     LocalDateTime targetTime,
-    String payloadJson     // Context to be returned upon trigger
+    boolean isPeriodic,
+    String cronExpression,
+    String payloadJson
 ) {}
 ```
 
@@ -61,9 +88,9 @@ public record FutureSchedule(
 
 | Endpoint | Method | Purpose | Payload |
 | :--- | :--- | :--- | :--- |
-| `/api/v1/tardis/convert` | `POST` | Convert timestamps between zones. | `TimeConversionRequest` |
-| `/api/v1/tardis/arithmetic` | `POST` | Calculate future/past dates based on expressions. | `RelativeTimeRequest` |
-| `/api/v1/tardis/schedules` | `POST` | Register a new future event trigger. | `FutureSchedule` |
+| `/api/v1/tardis/awareness` | `POST` | Get self-awareness/aging/circadian info for an entity. | `EntityTemporalContext` |
+| `/api/v1/tardis/emails/{chainId}` | `GET` | Perform deep temporal analysis of an email chain. | `EmailChainMetadata` |
+| `/api/v1/tardis/schedules` | `POST` | Register a new future event trigger (One-time/Periodic). | `FutureSchedule` |
 | `/api/v1/tardis/schedules/{id}` | `DELETE` | Cancel a pending schedule. | - |
 
 ## 7. Evaluation Metrics (Acceptance Criteria)
