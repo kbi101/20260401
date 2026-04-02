@@ -7,6 +7,7 @@ This specification defines the architectural requirements for the `tardis` modul
 - **Protocol:** REST API for synchronous arithmetic; Spring Application Events for asynchronous schedule triggers.
 - **Entity Intelligence:** 
     - **Living Things (Person/Animal/Plant):** Real-time age and life-cycle relative time based on birth/origin.
+    - **Person Context:** Subjective "Age Feeling" categorization (e.g., YOUNG, MIDDLE_AGED, OLD) based on a normalized 80-year human lifeline.
     - **Circadian Context:** Reporting Day/Night status based on timezone-aware environmental cycles for Earth-based entities.
     - **Tasks:** One-time and periodic execution tracking and next-trigger forecasting.
     - **Email Chains:** Deep temporal analysis of message chains (sent, received, reply, and nested reply-to-reply patterns).
@@ -45,6 +46,10 @@ public enum ConfidenceLevel {
     HIGHEST, PROBABLE, ESTIMATED, SPECULATIVE
 }
 
+public enum LifeStage {
+    YOUNG, MIDDLE_AGED, OLD, UNKNOWN
+}
+
 public record EntityTemporalContext(
     String entityId,
     EntityType type,
@@ -56,6 +61,7 @@ public record EntityTemporalContext(
 public record EntitySelfAwareness(
     String entityId,
     String relativeAge,   // e.g. "25 years", "2 days ago (received)"
+    LifeStage lifeStage,  // Dynamic (YOUNG, OLD...) based on 80-year span
     boolean isDaylight,   // True if sun has risen in target timezone
     LocalDateTime nextTransition, // next sunrise/sunset or next task run
     ConfidenceLevel currentConfidence
