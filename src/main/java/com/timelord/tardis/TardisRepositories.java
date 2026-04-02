@@ -1,0 +1,14 @@
+package com.timelord.tardis;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+import java.util.List;
+
+@Repository
+interface ScheduledEventRepository extends JpaRepository<ScheduledEventEntity, String> {
+    List<ScheduledEventEntity> findByStatus(String status);
+}
+
+@Repository
+interface EntityMetadataRepository extends JpaRepository<EntityMetadataEntity, String> {
+}
