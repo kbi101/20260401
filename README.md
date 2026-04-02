@@ -1,6 +1,13 @@
 # ⏳ Timelord: Inbox Intelligence Agent
 
-**Timelord** is a production-ready, AI-driven inbox intelligence module designed to automate the extraction of insights from multiple Gmail accounts. It utilizes a **Medallion Architecture** (Bronze/Silver/Gold) to transform raw email data into structured, actionable summaries using local LLMs.
+**Timelord** is a production-ready, AI-driven inbox intelligence module. This project is a showcase of **Spec-Oriented Development**, **Domain-Driven Design (DDD)**, and was **authored entirely by an AI Agent** (Antigravity).
+
+---
+
+## 🤖 AI-Agent Native & Spec-Driven
+- **Pure AI Authored**: Every line of code, migration, and configuration was autonomously generated and refined by the AI Agent to meet complex spec requirements.
+- **Spec-Oriented Development**: Implementation follows a strict **Capability Brief**, ensuring that architectural decisions (Medallion Architecture, Resource Guardrails) align precisely with high-level domain goals.
+- **Domain-Driven Design (DDD)**: leverages **Spring Modulith** to enforce strict bounded contexts, event-driven internal communication, and clear port/adapter boundaries.
 
 ---
 
