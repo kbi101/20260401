@@ -19,9 +19,9 @@ class InboxSyncSchedulingAdapter {
     }
 
     /**
-     * Trigger a sync every 8 hours.
+     * Trigger a sync every hour.
      */
-    @Scheduled(cron = "0 0 */8 * * *")
+    @Scheduled(cron = "0 0 * * * *")
     public void scheduleSync() {
         log.info("AUTO-TRIGGER: Initiating periodic inbox synchronization.");
         eventPublisher.publishEvent(new ScheduledSyncTrigger());
