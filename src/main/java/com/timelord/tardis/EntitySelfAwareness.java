@@ -1,0 +1,1 @@
+package com.timelord.tardis; import java.time.LocalDateTime; public record EntitySelfAwareness(String entityId, String relativeAge, LifeStage lifeStage, boolean isDaylight, LocalDateTime nextTransition, ConfidenceLevel currentConfidence) {}

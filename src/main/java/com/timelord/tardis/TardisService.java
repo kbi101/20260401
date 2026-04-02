@@ -63,6 +63,13 @@ public class TardisService {
         registerSchedule(event.schedule());
     }
 
+    @ApplicationModuleListener
+    void onAwarenessRequest(AwarenessRequestEvent event) {
+        log.info("Async Awareness requested for entity: {}", event.context().entityId());
+        EntitySelfAwareness awareness = getAwareness(event.context());
+        eventPublisher.publishEvent(new EntitySelfAwarenessReported(awareness));
+    }
+
     public EmailChainMetadata analyzeEmailChain(String chainId, List<LocalDateTime> points) {
         if (points.isEmpty()) return new EmailChainMetadata(chainId, points, Duration.ZERO, ConfidenceLevel.SPECULATIVE);
         

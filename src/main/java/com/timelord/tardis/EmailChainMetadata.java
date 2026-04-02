@@ -1,0 +1,1 @@
+package com.timelord.tardis; import java.time.Duration; import java.time.LocalDateTime; import java.util.List; public record EmailChainMetadata(String chainId, List<LocalDateTime> timelinePoints, Duration averageResponseTime, ConfidenceLevel timelineConfidence) {}

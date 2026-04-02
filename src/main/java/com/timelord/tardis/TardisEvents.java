@@ -1,0 +1,1 @@
+package com.timelord.tardis; record ScheduleRequestEvent(FutureSchedule schedule) {}  record ScheduledEventTriggered(String scheduleId, String ownerModule, String payloadJson) {} record ReminderDueEvent(String entityId, String message) {} record AwarenessRequestEvent(EntityTemporalContext context) {} record EntitySelfAwarenessReported(EntitySelfAwareness awareness) {}

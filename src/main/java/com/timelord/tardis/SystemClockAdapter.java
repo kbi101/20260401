@@ -1,0 +1,1 @@
+package com.timelord.tardis; import java.time.LocalDateTime; import java.time.ZoneId; import org.springframework.stereotype.Component; @Component class SystemClockAdapter implements ClockPort { @Override public LocalDateTime now() { return LocalDateTime.now(); } @Override public ZoneId currentZone() { return ZoneId.systemDefault(); } }

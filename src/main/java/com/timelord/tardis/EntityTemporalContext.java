@@ -1,0 +1,1 @@
+package com.timelord.tardis; import java.time.LocalDateTime; public record EntityTemporalContext(String entityId, EntityType type, String timezone, LocalDateTime birthTimestamp, ConfidenceLevel sourceConfidence) {}

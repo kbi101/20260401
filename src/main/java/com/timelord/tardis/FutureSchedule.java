@@ -1,0 +1,1 @@
+package com.timelord.tardis; import java.time.LocalDateTime; public record FutureSchedule(String scheduleId, String ownerModule, LocalDateTime targetTime, boolean isPeriodic, String cronExpression, String payloadJson) {}
