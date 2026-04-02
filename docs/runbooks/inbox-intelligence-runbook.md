@@ -9,7 +9,11 @@ The system is as a **Spring Modulith** application interacting with local storag
 graph TD
     subgraph "Local Filesystem"
         BZ[data/bronze/*.txt]
-        DB[SQLite / timelord.db]
+    end
+
+    subgraph "Relational Data"
+        RP[Postgres: gmail_db]
+        RS[SQLite / local-fallback]
     end
 
     subgraph "External Providers"
@@ -24,16 +28,21 @@ graph TD
 
     App -- "Fetch Raw" --> G
     App -- "Land Data" --> BZ
-    App -- "Store Metadata" --> DB
+    App -- "Store Metadata" --> RP
     App -- "Request Summary" --> O
     O -- "Inference (n=1)" --> App
     App -- "Clean Bronze" --> BZ
-    App -- "Update Refined" --> DB
+    App -- "Update Refined" --> RP
 ```
 
 ## 2. Configuration
 | Setting | Description | Default | Environment Variable |
 | :--- | :--- | :--- | :--- |
+| `DB_HOST` | Database host address. | `localhost` | `DB_HOST` |
+| `DB_NAME` | Target database name. | `dao_db` | `DB_NAME` |
+| `DB_USER` | Database username. | `postgres` | `DB_USER` |
+| `DB_PASSWORD` | Database password. | `********` | `DB_PASSWORD` |
+| `DB_SCHEMA` | Target schema. | `gmail_db` | `DB_SCHEMA` |
 | `spring.ai.ollama.base-url` | REST API endpoint for Ollama. | `http://localhost:11434` | `OLLAMA_HOST` |
 | `spring.ai.ollama.chat.options.model` | Target AI model. | `qwen2.5:7b` | `OLLAMA_MODEL` |
 | `spring.ai.ollama.chat.options.timeout` | inference call timeout. | `PT180S` | `OLLAMA_TIMEOUT` |

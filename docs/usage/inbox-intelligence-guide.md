@@ -19,7 +19,7 @@ sequenceDiagram
     participant B as Bronze Layer (Sync)
     participant S as Silver/Gold Layer (Intelligence)
     participant O as Ollama (AI Engine)
-    participant DB as SQLite / Filesystem
+    participant DB as Postgres (gmail_db) / SQLite
 
     U->>B: Trigger Sync (REST/Scheduled)
     B->>B: Fetch from Gmail (IMAP)

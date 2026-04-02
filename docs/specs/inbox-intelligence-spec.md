@@ -6,8 +6,11 @@ This specification defines the architectural requirements for the `inbox-intelli
 - **Goal:** To automate the extraction of insights from multiple user-defined Gmail accounts by periodically polling for new messages via **IMAP/SSL**, summarizing received emails and their attachments, archiving the original message after processing, and providing persistent, searchable summaries.
 - **Protocol:** The system MUST use **IMAPS (993)** with **Google App Passwords** for authentication, bypassing the direct Gmail REST API (OAuth2) for ease of local credential management.
 - **Architecture (Medallion Model):** 
-    - **Bronze Layer:** Raw email bodies are landed as unique `.txt` files in `data/bronze/` and metadata is stored in SQLite with a `PENDING` status.
+    - **Bronze Layer:** Raw email bodies are landed as unique `.txt` files in `data/bronze/` and metadata is stored in the database with a `PENDING` status.
     - **Silver/Gold Layer:** Refined AI summaries and structured insights are stored in the `email_summaries` table.
+- **Database (Dual Support):** 
+    - **Production/Primary:** PostgreSQL 17+ (using dedicated `gmail_db` schema).
+    - **Local/Development:** SQLite or H2 (for fast-feedback loops).
 - **Multi-Account Support:** The system MUST support parallel or sequential synchronization for an arbitrary number of registered email accounts.
 - **Delta Ingestion:** The system MUST track the `lastSuccessfulSyncAt` timestamp independently for EACH registered email account.
 - **Manual Control:** The feature MUST provide a REST API to query sync status per account and manually trigger a new sync cycle for any specific account.
