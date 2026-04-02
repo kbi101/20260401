@@ -25,6 +25,12 @@
 
 ---
 
+## 🗺️ Roadmap & Upcoming Features
+- **🪐 TARDIS (Time Service)**: Centralized temporal intelligence, timezone conversions, and persistent schedule/reminder management.
+- **📁 Multi-Format Ingestion**: Expanding beyond Gmail to support local directory monitoring and Slack integration.
+
+---
+
 ## 🛠️ Technology Stack
 
 - **Core**: Spring Boot 3.4.4, Spring Modulith
