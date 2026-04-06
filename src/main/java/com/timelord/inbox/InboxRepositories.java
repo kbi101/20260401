@@ -26,4 +26,21 @@ interface EmailPayloadRepository extends JpaRepository<EmailPayloadEntity, Strin
 
     // §8.1: Filter by source email without cursor
     List<EmailPayloadEntity> findBySourceEmailOrderByReceivedAtAsc(String sourceEmail, Pageable pageable);
+
+    @org.springframework.data.jpa.repository.Query(
+        "SELECT p FROM EmailPayloadEntity p " +
+        "LEFT JOIN EmailSummaryEntity s ON p.gmailId = s.originalGmailId " +
+        "WHERE (:email IS NULL OR p.sourceEmail = :email) " +
+        "  AND (CAST(:since AS timestamp) IS NULL OR p.receivedAt > :since) " +
+        "  AND (:gmailCategory IS NULL OR p.gmailCategory = :gmailCategory) " +
+        "  AND (:timelordCategory IS NULL OR s.timelordCategory = :timelordCategory) " +
+        "ORDER BY p.receivedAt ASC"
+    )
+    List<EmailPayloadEntity> findFeed(
+        @org.springframework.data.repository.query.Param("email") String email,
+        @org.springframework.data.repository.query.Param("since") LocalDateTime since,
+        @org.springframework.data.repository.query.Param("gmailCategory") String gmailCategory,
+        @org.springframework.data.repository.query.Param("timelordCategory") String timelordCategory,
+        Pageable pageable
+    );
 }

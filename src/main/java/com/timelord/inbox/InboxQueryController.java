@@ -49,22 +49,15 @@ class InboxQueryController {
     public ResponseEntity<SummaryFeedPage> getFeed(
             @RequestParam(required = false) LocalDateTime since,
             @RequestParam(defaultValue = "50") int limit,
-            @RequestParam(required = false) String email) {
+            @RequestParam(required = false) String email,
+            @RequestParam(required = false) String gmailCategory,
+            @RequestParam(required = false) String timelordCategory) {
 
         int effectiveLimit = Math.min(Math.max(limit, 1), MAX_LIMIT);
         // Fetch limit+1 to determine hasMore
         var pageable = PageRequest.of(0, effectiveLimit + 1);
 
-        List<EmailPayloadEntity> payloads;
-        if (email != null && since != null) {
-            payloads = payloadRepository.findBySourceEmailAndReceivedAtAfterOrderByReceivedAtAsc(email, since, pageable);
-        } else if (email != null) {
-            payloads = payloadRepository.findBySourceEmailOrderByReceivedAtAsc(email, pageable);
-        } else if (since != null) {
-            payloads = payloadRepository.findByReceivedAtAfterOrderByReceivedAtAsc(since, pageable);
-        } else {
-            payloads = payloadRepository.findAllByOrderByReceivedAtAsc(pageable);
-        }
+        List<EmailPayloadEntity> payloads = payloadRepository.findFeed(email, since, gmailCategory, timelordCategory, pageable);
 
         boolean hasMore = payloads.size() > effectiveLimit;
         List<EmailPayloadEntity> resultPayloads = hasMore ? payloads.subList(0, effectiveLimit) : payloads;

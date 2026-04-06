@@ -50,7 +50,7 @@ class InboxQueryApiTests {
                 "gmail-1", "user@gmail.com", "thread-1", "sender@test.com", now, 
                 "Subject", "Body", "path", List.of(), "Primary"));
         
-        when(payloadRepository.findAllByOrderByReceivedAtAsc(any(Pageable.class)))
+        when(payloadRepository.findFeed(any(), any(), any(), any(), any(Pageable.class)))
                 .thenReturn(List.of(payload));
         
         when(summaryRepository.findByOriginalGmailId("gmail-1")).thenReturn(Optional.empty());
