@@ -82,33 +82,50 @@ The application will be available at **`http://localhost:3017`**.
 
 ---
 
-## 🏗️ Architecture Diagram
+## 🏗️ System Architecture & Flow
+
+### **Data & Event Pipeline**
+
+The application follows an asynchronous, event-driven architecture using **Spring Modulith**. The flow follows the **Medallion Model** to ensure data integrity and local security.
 
 ```mermaid
-graph TD
-    subgraph "Local Filesystem"
-        BZ[data/bronze/*.txt]
+sequenceDiagram
+    autonumber
+    participant C as Cron/Startup
+    participant S as InboxSyncService
+    participant G as Gmail (Jakarta Mail)
+    participant B as Bronze Layer (Filesystem)
+    participant SQL as Postgres (gmail_db)
+    participant I as InboxIntelligenceService
+    participant O as Ollama (Local AI)
+
+    Note over C, S: Ingestion Phase (Synchronous)
+    C->>S: ScheduledSyncTrigger (Top of Hour)
+    S->>G: IMAP/SSL: Fetch New Emails
+    G-->>S: Raw Messages
+    loop For Each New Email
+        S->>B: Land Raw Body (.txt)
+        S->>SQL: Save Metadata & Status (PENDING)
+        S->>I: Emit EmailSyncedEvent
+    end
+    
+    Note over I, O: Intelligence Phase (Asynchronous/Transactional)
+    loop Sequential Processing (Semaphore: 1)
+        I->>B: Load Raw Content
+        I->>O: Inference: qwen2.5:7b (Summarization)
+        O-->>I: Summary, Action Items, Sentiment
+        I->>SQL: Save Gold Summary
+        I->>SQL: Update Silver Payload (PROCESSED)
+        I->>B: Purge Bronze File
+        I->>S: Emit EmailArchivedEvent
     end
 
-    subgraph "Relational Data"
-        RP[Postgres: gmail_db]
-    end
-
-    subgraph "External Providers"
-        G[Gmail / IMAP SSL:993]
-    end
-
-    subgraph "AI Infrastructure"
-        O[Ollama / :11434]
-    end
-
-    App[Timelord Application]
-
-    App -- "Fetch Raw" --> G
-    App -- "Land Data" --> BZ
-    App -- "Store Metadata" --> RP
-    App -- "Request Summary" --> O
-    O -- "Inference (n=1)" --> App
-    App -- "Clean Bronze" --> BZ
-    App -- "Update Refined" --> RP
+    Note over S, G: Archival Phase (Background)
+    S->>G: Finalize: Archive or Move to Folder
 ```
+
+### **Component Responsibility**
+- **InboxSyncService**: Responsible for the synchronous "Ingestion" and "Archival" phases. It manages the connection to the external world (Gmail).
+- **InboxIntelligenceService**: Responsible for the "Intelligence" phase. It manages the background queue and guarantees sequential LLM inference to protect local resources.
+- **JakartaMailAdapter**: Implements the technical details of the IMAP/SSL protocol.
+- **IntelligenceAdapter**: Bridges the gap between the application logic and the local **Ollama** server.

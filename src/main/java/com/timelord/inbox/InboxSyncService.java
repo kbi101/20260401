@@ -17,30 +17,35 @@ class InboxSyncService {
     private final GmailPort gmailPort;
     private final SyncStateRepository syncStateRepository;
     private final EmailPayloadRepository emailPayloadRepository;
+    private final org.springframework.context.ApplicationEventPublisher eventPublisher;
 
     @org.springframework.beans.factory.annotation.Value("${GMAIL_PRIMARY_ACCOUNT:primary@timelord.com}")
     private String primaryAccount;
 
-    @org.springframework.beans.factory.annotation.Value("${GMAIL_PRIMARY_PASSWORD:TODO-APP-PASS}")
+    @org.springframework.beans.factory.annotation.Value("${GMAIL_PRIMARY_PASSWORD:SET-ME-IN-DOCKER}")
     private String primaryPassword;
 
     public InboxSyncService(GmailPort gmailPort, 
                             SyncStateRepository syncStateRepository, 
-                            EmailPayloadRepository emailPayloadRepository) {
+                            EmailPayloadRepository emailPayloadRepository,
+                            org.springframework.context.ApplicationEventPublisher eventPublisher) {
         this.gmailPort = gmailPort;
         this.syncStateRepository = syncStateRepository;
         this.emailPayloadRepository = emailPayloadRepository;
+        this.eventPublisher = eventPublisher;
     }
 
-    @ApplicationModuleListener
+    @org.springframework.context.event.EventListener
     @org.springframework.transaction.annotation.Transactional(propagation = org.springframework.transaction.annotation.Propagation.REQUIRES_NEW)
     public void onSyncTrigger(ScheduledSyncTrigger trigger) {
-        log.info("Starting synchronization cycle for all registered accounts.");
         List<SyncStateEntity> allStates = syncStateRepository.findAll();
+        log.info("Starting synchronization cycle. Found {} accounts in database.", allStates.size());
         
         if (allStates.isEmpty()) {
-            log.warn("No accounts found in sync_state. Seeding from environment: {}", primaryAccount);
-            allStates.add(new SyncStateEntity(primaryAccount, "Primary", primaryPassword, LocalDateTime.now().minusDays(1), 0));
+            log.warn("CRITICAL: Database has NO accounts in schema! Seeding from environment variable: {}", primaryAccount);
+            SyncStateEntity seed = new SyncStateEntity(primaryAccount, "Primary", primaryPassword, LocalDateTime.now().minusDays(1), 0);
+            syncStateRepository.save(seed);
+            allStates.add(seed);
         }
 
         for (SyncStateEntity state : allStates) {
@@ -56,8 +61,11 @@ class InboxSyncService {
                 log.info("Account {}: Fetched {} new emails.", state.getEmailAddress(), newEmails.size());
 
                 for (EmailPayload email : newEmails) {
+                    log.info("Processing email: {} for account: {}", email.gmailId(), state.getEmailAddress());
                     emailPayloadRepository.save(EmailPayloadEntity.fromRecord(email));
                     state.incrementProcessedCount();
+                    log.info("Publishing EmailSyncedEvent for {}", email.gmailId());
+                    eventPublisher.publishEvent(new EmailSyncedEvent(email));
                 }
 
                 state.setLastSuccessfulSyncAt(LocalDateTime.now());
@@ -74,7 +82,7 @@ class InboxSyncService {
 
     @ApplicationModuleListener
     public void onEmailArchived(EmailArchivedEvent event) {
-        log.debug("Archive request received for {} in account {}", event.gmailId(), event.sourceEmail());
+        log.info("Processing background archive for {} in account {}", event.gmailId(), event.sourceEmail());
         syncStateRepository.findById(event.sourceEmail()).ifPresent(state -> {
             try {
                 gmailPort.archiveEmail(state.getEmailAddress(), state.getAppPassword(), event.gmailId());

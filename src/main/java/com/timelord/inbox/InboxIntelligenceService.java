@@ -1,10 +1,13 @@
 package com.timelord.inbox;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 @Service
 class InboxIntelligenceService {
+    private static final Logger log = LoggerFactory.getLogger(InboxIntelligenceService.class);
     private final IntelligencePort intelligencePort;
     private final EmailPayloadRepository payloadRepository;
     private final EmailSummaryRepository summaryRepository;
@@ -22,9 +25,8 @@ class InboxIntelligenceService {
 
     @org.springframework.scheduling.annotation.Scheduled(fixedDelay = 5000) // Poll every 5s
     public void processNextPending() {
-        payloadRepository.findAll().stream()
-            .filter(p -> "PENDING".equals(p.getStatus()))
-            .findFirst() // Take exactly one to honor Ollama semaphore/concurrency
+        payloadRepository.findByStatus("PENDING", org.springframework.data.domain.PageRequest.of(0, 1)).stream()
+            .findFirst() 
             .ifPresent(p -> process(new EmailSyncedEvent(p.toRecord())));
     }
 
@@ -45,6 +47,17 @@ class InboxIntelligenceService {
         }
 
         try {
+            // Check for existing summary to avoid duplicate key errors.
+            var existingSummary = summaryRepository.findByOriginalGmailId(payload.gmailId());
+            if (existingSummary.isPresent()) {
+                payloadRepository.findById(payload.gmailId()).ifPresent(p -> {
+                    p.setStatus("PROCESSED");
+                    payloadRepository.save(p);
+                });
+                cleanupLocalFile(payload.localBodyPath());
+                return;
+            }
+
             // Update the in-memory payload with the full content read from the folder
             EmailPayload finalPayload = new EmailPayload(
                 payload.gmailId(), payload.sourceEmail(), payload.threadId(), payload.sender(),
@@ -59,24 +72,28 @@ class InboxIntelligenceService {
                 payloadRepository.save(p);
             });
 
-            // Cleanup Bronze Layer after refinement to Silver/Gold
-            if (payload.localBodyPath() != null && !"FAILED_TO_WRITE".equals(payload.localBodyPath())) {
-                try {
-                    java.nio.file.Files.deleteIfExists(java.nio.file.Paths.get(payload.localBodyPath()));
-                } catch (Exception e) {
-                    // Log but don't fail the summary
-                }
-            }
+            cleanupLocalFile(payload.localBodyPath());
 
             eventPublisher.publishEvent(new EmailSummaryGeneratedEvent(summary));
             eventPublisher.publishEvent(new EmailArchivedEvent(payload.gmailId(), payload.sourceEmail()));
             
         } catch (Exception e) {
+            log.error("Failed to process email intelligence for {}: {}", payload.gmailId(), e.getMessage(), e);
             payloadRepository.findById(payload.gmailId()).ifPresent(p -> {
                 p.setStatus("FAILED");
                 payloadRepository.save(p);
             });
             eventPublisher.publishEvent(new ProcessingFailedEvent(payload.gmailId(), e.getMessage()));
+        }
+    }
+
+    private void cleanupLocalFile(String localPath) {
+        if (localPath != null && !"FAILED_TO_WRITE".equals(localPath) && !"null".equals(localPath)) {
+            try {
+                java.nio.file.Files.deleteIfExists(java.nio.file.Paths.get(localPath));
+            } catch (Exception e) {
+                // Log but continue
+            }
         }
     }
 }

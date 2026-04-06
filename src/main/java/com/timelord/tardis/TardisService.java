@@ -3,13 +3,12 @@ package com.timelord.tardis;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.modulith.ApplicationModuleListener;
+import org.springframework.modulith.events.ApplicationModuleListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.*;
 import java.time.temporal.ChronoUnit;
-import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -35,6 +34,16 @@ public class TardisService {
         if (context.type() == EntityType.PERSON) {
             if (years < 25) lifeStage = LifeStage.YOUNG;
             else if (years < 60) lifeStage = LifeStage.MIDDLE_AGED;
+            else lifeStage = LifeStage.OLD;
+        } else if (context.type() == EntityType.ANIMAL) {
+            // Assume 15 year average span
+            if (years < 3) lifeStage = LifeStage.YOUNG;
+            else if (years < 10) lifeStage = LifeStage.MIDDLE_AGED;
+            else lifeStage = LifeStage.OLD;
+        } else if (context.type() == EntityType.PLANT) {
+            // Simple seedling vs mature vs old
+            if (years < 1) lifeStage = LifeStage.YOUNG;
+            else if (years < 5) lifeStage = LifeStage.MIDDLE_AGED;
             else lifeStage = LifeStage.OLD;
         }
 

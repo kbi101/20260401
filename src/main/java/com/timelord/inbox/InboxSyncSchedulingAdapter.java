@@ -19,9 +19,18 @@ class InboxSyncSchedulingAdapter {
     }
 
     /**
+     * Trigger a sync on application startup so the user doesn't wait for the next hour.
+     */
+    @org.springframework.context.event.EventListener
+    public void onStartup(org.springframework.boot.context.event.ApplicationReadyEvent event) {
+        log.info("STARTUP-TRIGGER: Initiating initial inbox synchronization.");
+        eventPublisher.publishEvent(new ScheduledSyncTrigger());
+    }
+
+    /**
      * Trigger a sync every hour.
      */
-    @Scheduled(cron = "0 0 * * * *")
+    @Scheduled(cron = "${inbox.cron:0 0 * * * *}")
     public void scheduleSync() {
         log.info("AUTO-TRIGGER: Initiating periodic inbox synchronization.");
         eventPublisher.publishEvent(new ScheduledSyncTrigger());

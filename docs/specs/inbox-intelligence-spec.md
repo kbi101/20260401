@@ -3,8 +3,8 @@
 This specification defines the architectural requirements for the `inbox-intelligence` module. All implementations must adhere to the `timelord` architecture constraints, specifically focusing on Event-Driven decoupled interaction between the email fetching logic and the LLM summarization logic.
 
 ## 1. Feature Intent (Job-to-be-Done)
-- **Goal:** To automate the extraction of insights from multiple user-defined Gmail accounts by periodically polling for new messages via **IMAP/SSL**, summarizing received emails and their attachments, archiving the original message after processing, and providing persistent, searchable summaries.
-- **Protocol:** The system MUST use **IMAPS (993)** with **Google App Passwords** for authentication, bypassing the direct Gmail REST API (OAuth2) for ease of local credential management.
+- **Goal:** To automate the extraction of insights from multiple user-defined Gmail accounts by periodically polling for new messages via **IMAP/SSL**, summarizing received emails and their attachments into detailed contextual overviews, archiving the original message after processing, and providing persistent, searchable summaries.
+- **Protocol:** The system MUST use **IMAPS (993)** with **Google App Passwords** for authentication, bypassing the direct Gmail REST API (OAuth2) for ease of local credential management. Due to IMAP timezone blind spots with the `SINCE` date term, the system MUST use a batched backward-pagination strategy to manually filter messages by precise `LocalDateTime`.
 - **Architecture (Medallion Model):** 
     - **Bronze Layer:** Raw email bodies are landed as unique `.txt` files in `data/bronze/` and metadata is stored in the database with a `PENDING` status.
     - **Silver/Gold Layer:** Refined AI summaries and structured insights are stored in the `email_summaries` table.
@@ -20,7 +20,7 @@ This specification defines the architectural requirements for the `inbox-intelli
 To ensure modularity, the system uses the following event-driven contract:
 
 - **Inbound Events:**
-    - `ScheduledSyncTrigger`: Fired periodically (e.g., via Spring `@Scheduled`) to initiate the delta sync process.
+    - `ScheduledSyncTrigger`: Fired periodically (via Spring `@Scheduled` or startup listener) to initiate the delta sync process. Handled via a **Synchronous `@EventListener`** to ensure immediate execution in the same thread.
     - `EmailSyncedEvent`: Triggered by the `email-connector` when a new email is detected and downloaded.
     - `AttachmentDownloadedEvent`: Emitted after attachments are locally cached and ready for processing.
 - **Outbound Events:**
@@ -63,13 +63,12 @@ public record EmailSummary(
     String summaryText,
     List<String> keyActionItems,
     String sentiment,
-    List<EntityMention> entities,
     LocalDateTime processedAt
 ) {}
 
-public record SyncState(
+record SyncState(
     String emailAddress,  // PRIMARY KEY: Unique per account
-    String appPassword,   // Google App Password (encrypted in prod)
+    String accountName,
     LocalDateTime lastSuccessfulSyncAt,
     int totalProcessedCount
 ) {}
@@ -97,7 +96,7 @@ public record SyncState(
 
 | Input (Email Subject/Body) | Expected Output (Summary) | Expected Output (Action Items) |
 | :--- | :--- | :--- |
-| **Subj:** Q1 Timeline Review. **Body:** "Hi team, we are pushing the release to Friday. Please update the configs." | The Q1 release timeline has been shifted to Friday. | - Update configuration files for the Friday release. |
+| **Subj:** Q1 Timeline Review. **Body:** "Hi team, we are pushing the release to Friday. Please update the configs." | The Q1 release timeline has been shifted to Friday by the team. No exact deadline for config updates is specified. | - Update configuration files for the Friday release. |
 | **Subj:** Invoice 1234. **Body:** "Attached is the bill for the consultancy. Pay by Monday." (+ PDF attached) | A consultancy invoice (ID: 1234) has been received with a payment deadline of Monday. | - Process payment for Invoice 1234 by Monday. |
 
 ## 6. REST API Interface (External Control)

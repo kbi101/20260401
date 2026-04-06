@@ -39,7 +39,7 @@ class InboxModuleTests {
             LocalDateTime.now(), "Test Subject", "Test Body", "data/bronze/test.txt", new ArrayList<>()
         );
         
-        Mockito.when(gmailPort.fetchNewEmails(Mockito.any())).thenReturn(List.of(payload));
+        Mockito.when(gmailPort.fetchNewEmails(Mockito.anyString(), Mockito.anyString(), Mockito.any())).thenReturn(List.of(payload));
         
         EmailSummary mockSummary = new EmailSummary(
             UUID.randomUUID().toString(), gmailId, sourceEmail,
@@ -49,6 +49,12 @@ class InboxModuleTests {
 
         // When: Sync is triggered
         syncService.onSyncTrigger(new ScheduledSyncTrigger());
+        
+        // Wait for async sync to complete (since @ApplicationModuleListener is async)
+        try { Thread.sleep(200); } catch (InterruptedException e) {}
+
+        // Manually trigger the "Intelligence" processing step (since it usually polls every 5s)
+        intelligenceService.processNextPending();
 
         // Then: EmailSyncedEvent is published with source context
         assertThat(events.ofType(EmailSyncedEvent.class)).hasSize(1);
@@ -78,7 +84,7 @@ class InboxModuleTests {
         
         EmailSummary expectedSummary = new EmailSummary(
             UUID.randomUUID().toString(), gmailId, sourceEmail,
-            "The Q1 release timeline has been shifted to Friday.",
+            "The Q1 release timeline has been shifted to Friday by the team. No exact deadline for config updates is specified.",
             List.of("Update configuration files for the Friday release."),
             "NEUTRAL", LocalDateTime.now()
         );

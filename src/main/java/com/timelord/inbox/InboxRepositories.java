@@ -9,4 +9,6 @@ interface EmailSummaryRepository extends JpaRepository<EmailSummaryEntity, Strin
     Optional<EmailSummaryEntity> findByOriginalGmailId(String originalGmailId);
 }
 
-interface EmailPayloadRepository extends JpaRepository<EmailPayloadEntity, String> {}
+interface EmailPayloadRepository extends JpaRepository<EmailPayloadEntity, String> {
+    java.util.List<EmailPayloadEntity> findByStatus(String status, org.springframework.data.domain.Pageable pageable);
+}

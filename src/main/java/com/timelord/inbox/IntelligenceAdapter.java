@@ -42,7 +42,7 @@ class IntelligenceAdapter implements IntelligencePort {
             You are Timelord Inbox Intelligence.
             Summarize the following email and extract key action items.
             Format your response strictly as follows (no prose):
-            SUMMARY: <one sentence summary>
+            SUMMARY: <a detailed 2-4 sentence summary capturing the key purpose, important context, and any specific deadlines mentioned>
             ACTIONS: <item 1>, <item 2>
             SENTIMENT: <POSITIVE|NEGATIVE|NEUTRAL>
 

@@ -38,6 +38,8 @@ class ScheduledEventEntity {
     public void setStatus(String status) { this.status = status; }
     public String getOwnerModule() { return ownerModule; }
     public String getPayloadJson() { return payloadJson; }
+    public boolean isPeriodic() { return isPeriodic; }
+    public String getCronExpression() { return cronExpression; }
 }
 
 @Entity

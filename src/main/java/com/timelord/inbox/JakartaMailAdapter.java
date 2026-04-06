@@ -4,9 +4,7 @@ import jakarta.mail.Folder;
 import jakarta.mail.Message;
 import jakarta.mail.Session;
 import jakarta.mail.Store;
-import jakarta.mail.search.ComparisonTerm;
-import jakarta.mail.search.ReceivedDateTerm;
-import jakarta.mail.search.SearchTerm;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -14,7 +12,6 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 
@@ -46,11 +43,41 @@ class JakartaMailAdapter implements GmailPort {
             Folder inbox = store.getFolder("INBOX");
             inbox.open(Folder.READ_ONLY);
 
-            Date sinceDate = Date.from(since.atZone(ZoneId.systemDefault()).toInstant());
-            SearchTerm term = new ReceivedDateTerm(ComparisonTerm.GT, sinceDate);
+            // IMAP SearchTerm for dates ignores the time component leading to missed emails.
+            // We fetch recent emails in batches and sort/filter manually.
+            int total = inbox.getMessageCount();
+            int batchSize = 50;
+            int currentEnd = total;
             
-            Message[] messages = inbox.search(term);
-            log.info("Found {} messages since {}", messages.length, since);
+            List<Message> matchingMessages = new ArrayList<>();
+            boolean foundOlderMessage = false;
+
+            while (currentEnd > 0 && !foundOlderMessage) {
+                int currentStart = Math.max(1, currentEnd - batchSize + 1);
+                Message[] recentMessages = inbox.getMessages(currentStart, currentEnd);
+                
+                // Process from newest to oldest in this batch
+                for (int i = recentMessages.length - 1; i >= 0; i--) {
+                    Message msg = recentMessages[i];
+                    if (msg.getReceivedDate() != null) {
+                        LocalDateTime msgTime = msg.getReceivedDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+                        if (msgTime.isAfter(since)) {
+                            matchingMessages.add(msg);
+                        } else {
+                            foundOlderMessage = true;
+                            // We found an email older than our 'since' date. 
+                            // Since emails are ordered by date, we don't need to look at older ones.
+                            break; 
+                        }
+                    }
+                }
+                currentEnd = currentStart - 1;
+            }
+            
+            // Reversing so oldest new message is processed first
+            java.util.Collections.reverse(matchingMessages);
+            Message[] messages = matchingMessages.toArray(new Message[0]);
+            log.info("Inspected batches, found {} messages since {}", messages.length, since);
 
             for (Message msg : messages) {
                 try {
