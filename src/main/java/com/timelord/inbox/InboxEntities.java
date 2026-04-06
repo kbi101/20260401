@@ -75,6 +75,14 @@ class EmailSummaryEntity {
     public EmailSummary toRecord() {
         return new EmailSummary(summaryId, originalGmailId, sourceEmail, summaryText, keyActionItems, sentiment, processedAt);
     }
+
+    public String getSummaryId() { return summaryId; }
+    public String getOriginalGmailId() { return originalGmailId; }
+    public String getSourceEmail() { return sourceEmail; }
+    public String getSummaryText() { return summaryText; }
+    public List<String> getKeyActionItems() { return keyActionItems; }
+    public String getSentiment() { return sentiment; }
+    public LocalDateTime getProcessedAt() { return processedAt; }
 }
 
 @Entity
@@ -116,4 +124,12 @@ class EmailPayloadEntity {
 
     public void setStatus(String status) { this.status = status; }
     public String getStatus() { return status; }
+    public String getGmailId() { return gmailId; }
+    public String getSourceEmail() { return sourceEmail; }
+    public String getThreadId() { return threadId; }
+    public String getSender() { return sender; }
+    public LocalDateTime getReceivedAt() { return receivedAt; }
+    public String getSubject() { return subject; }
+    public String getBodyContent() { return bodyContent; }
+    public String getLocalBodyPath() { return localBodyPath; }
 }

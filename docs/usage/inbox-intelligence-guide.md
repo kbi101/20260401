@@ -73,61 +73,67 @@ sequenceDiagram
 | `/api/v1/inbox/sync-state` | `GET` | Retrieve sync status for all accounts |
 | `/api/v1/inbox/sync` | `POST` | Manually trigger a sync cycle |
 | `/api/v1/inbox/summaries/{gmailId}` | `GET` | Retrieve the AI summary for a specific email |
+| `/api/v1/inbox/feed` | `GET` | Load summaries newer than a cursor `since` |
+| `/api/v1/inbox/emails/{gmailId}` | `GET` | Retrieve the full original email detail |
+| `/api/v1/inbox/emails/{gmailId}/reply` | `POST` | Send a reply to an email thread via SMTP |
 
-### Sample: Get Sync State
-
-**Request:**
-```http
-GET /api/v1/inbox/sync-state HTTP/1.1
-Host: localhost:3017
-```
-
-**Response (200 OK):**
-```json
-[
-  {
-    "emailAddress": "keping.bi@gmail.com",
-    "accountName": "personal-gmail",
-    "lastSuccessfulSyncAt": "2026-04-06T09:14:16",
-    "totalProcessedCount": 147
-  }
-]
-```
-
-### Sample: Get Email Summary
+### Sample: Get Summary Feed
 
 **Request:**
 ```http
-GET /api/v1/inbox/summaries/msg-abc123 HTTP/1.1
+GET /api/v1/inbox/feed?since=2026-04-06T09:00:00&limit=1 HTTP/1.1
 Host: localhost:3017
 ```
 
 **Response (200 OK):**
 ```json
 {
-  "summaryId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-  "originalGmailId": "msg-abc123",
-  "sourceEmail": "keping.bi@gmail.com",
-  "summaryText": "The Q1 release timeline has been shifted to Friday by the team. No exact deadline for config updates is specified.",
-  "keyActionItems": [
-    "Update configuration files for the Friday release."
+  "summaries": [
+    {
+      "summaryId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      "originalGmailId": "msg-abc123",
+      "sourceEmail": "keping.bi@gmail.com",
+      "sender": "example@domain.com",
+      "subject": "Project Update",
+      "receivedAt": "2026-04-06T09:12:00",
+      "summaryText": "The Q1 release timeline has been shifted to Friday.",
+      "keyActionItems": ["Update configuration files."],
+      "sentiment": "NEUTRAL",
+      "processedAt": "2026-04-06T09:15:00"
+    }
   ],
-  "sentiment": "NEUTRAL",
-  "processedAt": "2026-04-06T09:15:00"
+  "nextCursor": "2026-04-06T09:12:00",
+  "hasMore": false
 }
 ```
 
-### Sample: Trigger Manual Sync
+### Sample: Reply to Email
 
 **Request:**
 ```http
-POST /api/v1/inbox/sync?email=keping.bi@gmail.com HTTP/1.1
+POST /api/v1/inbox/emails/msg-abc123/reply HTTP/1.1
 Host: localhost:3017
+Content-Type: application/json
+
+{
+  "gmailId": "msg-abc123",
+  "body": "Got it, I will update the configs.",
+  "replyAll": false
+}
 ```
 
-**Response:** `202 Accepted` (sync runs asynchronously)
+**Response (200 OK):**
+```json
+{
+  "originalGmailId": "msg-abc123",
+  "sourceEmail": "keping.bi@gmail.com",
+  "replyMessageId": "<new-id@mail.gmail.com>",
+  "sentAt": "2026-04-06T10:30:00"
+}
+```
 
 ### Domain Events
+
 
 Other modules within the Timelord ecosystem can listen for these Spring Application Events:
 

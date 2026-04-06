@@ -18,3 +18,17 @@ interface GmailPort {
 interface IntelligencePort {
     EmailSummary summarize(EmailPayload email);
 }
+
+// §8.3: SMTP Port for sending email replies
+interface SmtpPort {
+    /**
+     * Send a reply to an existing email thread.
+     * @param emailAddress The source account's email (From address)
+     * @param appPassword  The Google App Password for SMTP auth
+     * @param originalEmail The original email being replied to
+     * @param replyBody    The plain-text reply body
+     * @param replyAll     If true, reply to all original recipients
+     * @return The Message-ID assigned by Gmail to the sent reply
+     */
+    String sendReply(String emailAddress, String appPassword, EmailPayload originalEmail, String replyBody, boolean replyAll);
+}

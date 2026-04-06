@@ -110,6 +110,7 @@ Monitor these log patterns in your log aggregator (ELK, Loki, CloudWatch):
 | Endpoint | Purpose |
 | :--- | :--- |
 | `GET /api/v1/inbox/sync-state` | Verify sync is progressing (check `lastSuccessfulSyncAt`) |
+| `GET /api/v1/inbox/feed` | Check if new summaries are available to consumers |
 | `GET /actuator/health` | Standard Spring Boot health check |
 
 ---

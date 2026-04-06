@@ -7,11 +7,17 @@ import org.springframework.test.context.ActiveProfiles;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import io.restassured.module.mockmvc.RestAssuredMockMvc;
+import org.springframework.web.context.WebApplicationContext;
+
 @org.springframework.modulith.test.ApplicationModuleTest
 @org.springframework.cloud.contract.verifier.messaging.boot.AutoConfigureMessageVerifier
 @org.springframework.context.annotation.Import(TimelordInboxBase.TestConfig.class)
 @ActiveProfiles("test")
 public abstract class TimelordInboxBase {
+
+    @Autowired
+    private WebApplicationContext webApplicationContext;
 
     @Autowired
     private ApplicationEventPublisher eventPublisher;
@@ -24,6 +30,9 @@ public abstract class TimelordInboxBase {
 
     @org.springframework.test.context.bean.override.mockito.MockitoBean
     private GmailPort gmailPort;
+
+    @org.springframework.test.context.bean.override.mockito.MockitoBean
+    private SmtpPort smtpPort;
 
     @org.springframework.boot.test.context.TestConfiguration
     static class TestConfig {
@@ -54,8 +63,19 @@ public abstract class TimelordInboxBase {
     @org.springframework.beans.factory.annotation.Qualifier("email-summaries")
     private org.springframework.messaging.MessageChannel emailSummariesChannel;
 
+    @Autowired
+    private EmailPayloadRepository payloadRepository;
+
+    @Autowired
+    private EmailSummaryRepository summaryRepository;
+
+    @Autowired
+    private SyncStateRepository syncStateRepository;
+
     @BeforeEach
     public void setup() {
+        RestAssuredMockMvc.webAppContextSetup(webApplicationContext);
+
         // Mock the intelligence port to return what the contract expects (Golden Dataset aligned)
         org.mockito.Mockito.when(intelligencePort.summarize(org.mockito.Mockito.any()))
             .thenReturn(new EmailSummary(
@@ -67,6 +87,35 @@ public abstract class TimelordInboxBase {
                 "NEUTRAL",
                 LocalDateTime.now()
             ));
+
+        // Seed data for the REST contract tests
+        payloadRepository.save(EmailPayloadEntity.fromRecord(new EmailPayload(
+            "golden-q1-id", "pmo@timelord.com", "thread-1", "pmo@timelord.com", 
+            LocalDateTime.parse("2026-04-06T10:00:00"), "Q1 Timeline Review", 
+            "Hi team, we are pushing the release to Friday. Please update the configs.", 
+            "data/bronze/golden.txt", java.util.List.of()
+        )));
+
+        // Update status for the detail test
+        var p = payloadRepository.findById("golden-q1-id").get();
+        p.setStatus("PROCESSED");
+        payloadRepository.save(p);
+
+        // Seed summary for the feed test
+        EmailSummaryEntity s = EmailSummaryEntity.fromRecord(new EmailSummary(
+            "11111111-2222-3333-4444-555555555555", "golden-q1-id", "pmo@timelord.com", 
+            "The Q1 release timeline has been shifted to Friday by the team. No exact deadline for config updates is specified.", 
+            java.util.List.of("Update configuration files for the Friday release."), 
+            "NEUTRAL", LocalDateTime.parse("2026-04-06T10:05:00")
+        ));
+        summaryRepository.save(s);
+
+        // Seed sync state for the reply test
+        syncStateRepository.save(new SyncStateEntity("pmo@timelord.com", "account1", "pass", LocalDateTime.now(), 1));
+
+        // Mock SMTP port for reply test
+        org.mockito.Mockito.when(smtpPort.sendReply(org.mockito.Mockito.anyString(), org.mockito.Mockito.anyString(), org.mockito.Mockito.any(), org.mockito.Mockito.anyString(), org.mockito.Mockito.anyBoolean()))
+                .thenReturn("reply-msg-1");
     }
 
     protected void EmailSyncedEvent() {
