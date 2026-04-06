@@ -56,6 +56,7 @@ class EmailSummaryEntity {
     private List<String> keyActionItems;
     
     private String sentiment;
+    private String timelordCategory;
     private LocalDateTime processedAt;
 
     protected EmailSummaryEntity() {}
@@ -68,12 +69,13 @@ class EmailSummaryEntity {
         entity.summaryText = record.summaryText();
         entity.keyActionItems = record.keyActionItems();
         entity.sentiment = record.sentiment();
+        entity.timelordCategory = record.timelordCategory();
         entity.processedAt = record.processedAt();
         return entity;
     }
 
     public EmailSummary toRecord() {
-        return new EmailSummary(summaryId, originalGmailId, sourceEmail, summaryText, keyActionItems, sentiment, processedAt);
+        return new EmailSummary(summaryId, originalGmailId, sourceEmail, summaryText, keyActionItems, sentiment, timelordCategory, processedAt);
     }
 
     public String getSummaryId() { return summaryId; }
@@ -82,6 +84,7 @@ class EmailSummaryEntity {
     public String getSummaryText() { return summaryText; }
     public List<String> getKeyActionItems() { return keyActionItems; }
     public String getSentiment() { return sentiment; }
+    public String getTimelordCategory() { return timelordCategory; }
     public LocalDateTime getProcessedAt() { return processedAt; }
 }
 
@@ -101,6 +104,7 @@ class EmailPayloadEntity {
     
     private String localBodyPath;
     private String status; // PENDING, PROCESSED, FAILED
+    private String gmailCategory;
 
     protected EmailPayloadEntity() {}
 
@@ -114,12 +118,13 @@ class EmailPayloadEntity {
         entity.subject = record.subject();
         entity.bodyContent = record.bodyContent();
         entity.localBodyPath = record.localBodyPath();
+        entity.gmailCategory = record.gmailCategory();
         entity.status = "PENDING";
         return entity;
     }
 
     public EmailPayload toRecord() {
-        return new EmailPayload(gmailId, sourceEmail, threadId, sender, receivedAt, subject, bodyContent, localBodyPath, List.of());
+        return new EmailPayload(gmailId, sourceEmail, threadId, sender, receivedAt, subject, bodyContent, localBodyPath, List.of(), gmailCategory);
     }
 
     public void setStatus(String status) { this.status = status; }
@@ -132,4 +137,5 @@ class EmailPayloadEntity {
     public String getSubject() { return subject; }
     public String getBodyContent() { return bodyContent; }
     public String getLocalBodyPath() { return localBodyPath; }
+    public String getGmailCategory() { return gmailCategory; }
 }

@@ -22,6 +22,7 @@ Contract.make {
             sender: "pmo@timelord.com",
             receivedAt: "2026-04-06T10:00:00",
             subject: "Q1 Timeline Review",
+            gmailCategory: "Primary",
             bodyContent: "Hi team, we are pushing the release to Friday. Please update the configs.",
             status: "PROCESSED",
             attachments: []

@@ -79,6 +79,8 @@ class InboxQueryController {
                     p.getSender(),
                     p.getSubject(),
                     p.getReceivedAt(),
+                    p.getGmailCategory(),
+                    summary.map(s -> s.getTimelordCategory()).orElse(null),
                     summary.map(s -> s.getSummaryText()).orElse(null),
                     summary.map(s -> s.getKeyActionItems()).orElse(List.of()),
                     summary.map(s -> s.getSentiment()).orElse(null),
@@ -106,6 +108,7 @@ class InboxQueryController {
                         entity.getSender(),
                         entity.getReceivedAt(),
                         entity.getSubject(),
+                        entity.getGmailCategory(),
                         entity.getBodyContent(),
                         entity.getStatus(),
                         List.of() // Attachments not yet persisted — placeholder per spec

@@ -45,6 +45,7 @@ class IntelligenceAdapter implements IntelligencePort {
             SUMMARY: <a detailed 2-4 sentence summary capturing the key purpose, important context, and any specific deadlines mentioned>
             ACTIONS: <item 1>, <item 2>
             SENTIMENT: <POSITIVE|NEGATIVE|NEUTRAL>
+            CATEGORY: <JOB_SEARCH|FINANCE|GENERAL_ADS|OTHER>
 
             EMAIL SUBJECT: {subject}
             EMAIL FROM: {sender}
@@ -72,6 +73,11 @@ class IntelligenceAdapter implements IntelligencePort {
         String summaryText = parseSection(response, "SUMMARY:");
         String actionsText = parseSection(response, "ACTIONS:");
         String sentiment = parseSection(response, "SENTIMENT:");
+        String category = parseSection(response, "CATEGORY:");
+        
+        if (category == null || category.isEmpty()) {
+            category = "OTHER";
+        }
 
         List<String> actions = Arrays.stream(actionsText.split(","))
                                   .map(String::strip)
@@ -85,6 +91,7 @@ class IntelligenceAdapter implements IntelligencePort {
             summaryText,
             actions,
             sentiment,
+            category,
             LocalDateTime.now()
         );
     }

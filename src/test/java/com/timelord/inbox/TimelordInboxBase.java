@@ -85,6 +85,7 @@ public abstract class TimelordInboxBase {
                 "The Q1 release timeline has been shifted to Friday by the team. No exact deadline for config updates is specified.",
                 java.util.List.of("Update configuration files for the Friday release."),
                 "NEUTRAL",
+                "OTHER",
                 LocalDateTime.now()
             ));
 
@@ -93,7 +94,7 @@ public abstract class TimelordInboxBase {
             "golden-q1-id", "pmo@timelord.com", "thread-1", "pmo@timelord.com", 
             LocalDateTime.parse("2026-04-06T10:00:00"), "Q1 Timeline Review", 
             "Hi team, we are pushing the release to Friday. Please update the configs.", 
-            "data/bronze/golden.txt", java.util.List.of()
+            "data/bronze/golden.txt", java.util.List.of(), "Primary"
         )));
 
         // Update status for the detail test
@@ -106,7 +107,7 @@ public abstract class TimelordInboxBase {
             "11111111-2222-3333-4444-555555555555", "golden-q1-id", "pmo@timelord.com", 
             "The Q1 release timeline has been shifted to Friday by the team. No exact deadline for config updates is specified.", 
             java.util.List.of("Update configuration files for the Friday release."), 
-            "NEUTRAL", LocalDateTime.parse("2026-04-06T10:05:00")
+            "NEUTRAL", "OTHER", LocalDateTime.parse("2026-04-06T10:05:00")
         ));
         summaryRepository.save(s);
 
@@ -130,7 +131,7 @@ public abstract class TimelordInboxBase {
             "Test Subject",
             "Verification content",
             "data/bronze/test.txt",
-            java.util.List.of()
+            java.util.List.of(), "Primary"
         );
         
         eventPublisher.publishEvent(new EmailSyncedEvent(payload));

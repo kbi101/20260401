@@ -61,7 +61,7 @@ class InboxIntelligenceService {
             // Update the in-memory payload with the full content read from the folder
             EmailPayload finalPayload = new EmailPayload(
                 payload.gmailId(), payload.sourceEmail(), payload.threadId(), payload.sender(),
-                payload.receivedAt(), payload.subject(), localContent, payload.localBodyPath(), payload.attachments()
+                payload.receivedAt(), payload.subject(), localContent, payload.localBodyPath(), payload.attachments(), payload.gmailCategory()
             );
 
             EmailSummary summary = intelligencePort.summarize(finalPayload);

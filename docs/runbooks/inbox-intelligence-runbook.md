@@ -35,7 +35,7 @@ stateDiagram-v2
     FETCHING --> FETCHING: Paginate backward (50/batch)
     FETCHING --> PROCESSING: All new emails collected
     PROCESSING --> SUMMARIZING: Send to LLM
-    SUMMARIZING --> PERSISTED: Summary saved
+    SUMMARIZING --> PERSISTED: Summary & AI Categories saved
     SUMMARIZING --> FAILED: Timeout / LLM error
     FAILED --> PROCESSING: Retry next cycle
     PERSISTED --> PROCESSING: Next pending email
@@ -168,9 +168,9 @@ Monitor these log patterns in your log aggregator (ELK, Loki, CloudWatch):
    ```
 4. **Restart the application** to pick up config changes.
 
-### Scenario 3: LLM Hallucination / Poor Quality Summaries
+### Scenario 3: LLM Hallucination / Poor Quality Classification
 
-**Symptoms:** Summaries contain fabricated information, incorrect dates, or hallucinated senders.
+**Symptoms:** Summaries contain fabricated information, incorrect dates, hallucinated senders, or incorrect `timelordCategory` (e.g. labeling personal chats as `FINANCE`).
 
 **Steps:**
 1. **Lower the temperature** for more deterministic output:

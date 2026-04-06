@@ -48,7 +48,7 @@ class InboxQueryApiTests {
         LocalDateTime now = LocalDateTime.now();
         EmailPayloadEntity payload = EmailPayloadEntity.fromRecord(new EmailPayload(
                 "gmail-1", "user@gmail.com", "thread-1", "sender@test.com", now, 
-                "Subject", "Body", "path", List.of()));
+                "Subject", "Body", "path", List.of(), "Primary"));
         
         when(payloadRepository.findAllByOrderByReceivedAtAsc(any(Pageable.class)))
                 .thenReturn(List.of(payload));
@@ -66,7 +66,7 @@ class InboxQueryApiTests {
         LocalDateTime now = LocalDateTime.now();
         EmailPayloadEntity payload = EmailPayloadEntity.fromRecord(new EmailPayload(
                 "gmail-1", "user@gmail.com", "thread-1", "sender@test.com", now, 
-                "Subject", "Body", "path", List.of()));
+                "Subject", "Body", "path", List.of(), "Primary"));
 
         when(payloadRepository.findById("gmail-1")).thenReturn(Optional.of(payload));
 
@@ -81,7 +81,7 @@ class InboxQueryApiTests {
         LocalDateTime now = LocalDateTime.now();
         EmailPayloadEntity payload = EmailPayloadEntity.fromRecord(new EmailPayload(
                 "gmail-1", "user@gmail.com", "thread-1", "sender@test.com", now, 
-                "Subject", "Body", "path", List.of()));
+                "Subject", "Body", "path", List.of(), "Primary"));
 
         SyncStateEntity syncState = new SyncStateEntity("user@gmail.com", "account1", "pass", now, 1);
 

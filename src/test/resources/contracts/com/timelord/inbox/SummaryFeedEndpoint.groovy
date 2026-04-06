@@ -28,6 +28,8 @@ Contract.make {
                     sender: "pmo@timelord.com",
                     subject: "Q1 Timeline Review",
                     receivedAt: "2026-04-06T10:00:00",
+                    gmailCategory: "Primary",
+                    timelordCategory: "OTHER",
                     summaryText: "The Q1 release timeline has been shifted to Friday by the team. No exact deadline for config updates is specified.",
                     keyActionItems: [
                         "Update configuration files for the Friday release."

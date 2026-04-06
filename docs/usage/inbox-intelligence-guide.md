@@ -10,6 +10,7 @@ Modern knowledge workers receive hundreds of emails daily. Important action item
 **Key capabilities:**
 - 🔄 **Multi-account support** — Monitor multiple Gmail inboxes simultaneously
 - 🧠 **AI-powered summarization** — Each email is analyzed by a local LLM for summary, action items, and sentiment
+- 🏷 **Two-Tier Classification** — Emails are labeled by native Gmail categories (Primary, Promotions) and semantic AI intents (Job Search, Finance)
 - 📊 **Searchable summaries** — Query any processed email's summary via a simple REST API
 - ⏱️ **Delta sync** — Only new messages are processed; the system remembers where it left off per account
 
@@ -34,9 +35,9 @@ sequenceDiagram
     Scheduler->>DB: Read SyncState per account
     Scheduler->>IMAP: Connect via IMAPS (port 993)
     IMAP-->>Scheduler: New emails (batched, 50/page)
-    Scheduler->>DB: Save raw payload (Bronze layer)
+    Scheduler->>DB: Save raw payload (Bronze layer, includes gmailCategory)
     Scheduler->>LLM: Summarize email body
-    LLM-->>Scheduler: Summary + Action Items + Sentiment
+    LLM-->>Scheduler: Summary + Actions + Sentiment + timelordCategory
     Scheduler->>DB: Persist EmailSummary (Silver/Gold layer)
     Scheduler->>DB: Update SyncState timestamp
 
@@ -97,6 +98,8 @@ Host: localhost:3017
       "subject": "Project Update",
       "receivedAt": "2026-04-06T09:12:00",
       "summaryText": "The Q1 release timeline has been shifted to Friday.",
+      "gmailCategory": "Primary",
+      "timelordCategory": "OTHER",
       "keyActionItems": ["Update configuration files."],
       "sentiment": "NEUTRAL",
       "processedAt": "2026-04-06T09:15:00"

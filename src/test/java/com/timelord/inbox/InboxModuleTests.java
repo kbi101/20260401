@@ -36,14 +36,14 @@ class InboxModuleTests {
         String sourceEmail = "test-account@timelord.com";
         EmailPayload payload = new EmailPayload(
             gmailId, sourceEmail, UUID.randomUUID().toString(), "sender@example.com", 
-            LocalDateTime.now(), "Test Subject", "Test Body", "data/bronze/test.txt", new ArrayList<>()
+            LocalDateTime.now(), "Test Subject", "Test Body", "data/bronze/test.txt", new ArrayList<>(), "Primary"
         );
         
         Mockito.when(gmailPort.fetchNewEmails(Mockito.anyString(), Mockito.anyString(), Mockito.any())).thenReturn(List.of(payload));
         
         EmailSummary mockSummary = new EmailSummary(
             UUID.randomUUID().toString(), gmailId, sourceEmail,
-            "A test summary", List.of("Action 1"), "POSITIVE", LocalDateTime.now()
+            "A test summary", List.of("Action 1"), "POSITIVE", "OTHER", LocalDateTime.now()
         );
         Mockito.when(intelligencePort.summarize(Mockito.any())).thenReturn(mockSummary);
 
@@ -79,14 +79,14 @@ class InboxModuleTests {
             "Q1 Timeline Review", 
             "Hi team, we are pushing the release to Friday. Please update the configs.",
             "data/bronze/golden.txt",
-            new ArrayList<>()
+            new ArrayList<>(), "Primary"
         );
         
         EmailSummary expectedSummary = new EmailSummary(
             UUID.randomUUID().toString(), gmailId, sourceEmail,
             "The Q1 release timeline has been shifted to Friday by the team. No exact deadline for config updates is specified.",
             List.of("Update configuration files for the Friday release."),
-            "NEUTRAL", LocalDateTime.now()
+            "NEUTRAL", "OTHER", LocalDateTime.now()
         );
         Mockito.when(intelligencePort.summarize(Mockito.any())).thenReturn(expectedSummary);
 

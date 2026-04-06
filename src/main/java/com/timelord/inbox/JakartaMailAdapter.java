@@ -116,7 +116,8 @@ class JakartaMailAdapter implements GmailPort {
                         msg.getSubject() != null ? msg.getSubject() : "(No Subject)",
                         rawBody,
                         localPath,
-                        new ArrayList<>()
+                        new ArrayList<>(),
+                        "Primary" // TODO: Extract from X-GM-LABELS via com.sun.mail.imap.protocol.IMAPProtocol
                     ));
                 } catch (Exception e) {
                     log.error("Error parsing message content for {}", msg.getSubject(), e);

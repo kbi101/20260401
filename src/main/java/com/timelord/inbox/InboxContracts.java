@@ -15,7 +15,8 @@ record EmailPayload(
     String subject,
     String bodyContent,
     String localBodyPath,
-    List<AttachmentMetadata> attachments
+    List<AttachmentMetadata> attachments,
+    String gmailCategory   // Native Gmail Classification (Primary, Promotions, etc.)
 ) {}
 
 record AttachmentMetadata(
@@ -33,6 +34,7 @@ record EmailSummary(
     String summaryText,
     List<String> keyActionItems,
     String sentiment,
+    String timelordCategory, // AI Category (JOB_SEARCH, FINANCE, etc.)
     LocalDateTime processedAt
 ) {}
 
@@ -64,6 +66,8 @@ record EmailSummaryDetail(
     String sender,
     String subject,
     LocalDateTime receivedAt,
+    String gmailCategory,
+    String timelordCategory,
     String summaryText,
     List<String> keyActionItems,
     String sentiment,
@@ -84,6 +88,7 @@ record EmailDetail(
     String sender,
     LocalDateTime receivedAt,
     String subject,
+    String gmailCategory,
     String bodyContent,
     String status,
     List<AttachmentMetadata> attachments
